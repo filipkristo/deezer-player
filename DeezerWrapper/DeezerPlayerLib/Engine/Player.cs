@@ -23,6 +23,13 @@ namespace DeezerPlayerLib.Engine
         private const int DZ_INDEX_IN_QUEUELIST_CURRENT = -3;
         private const int DZ_INDEX_IN_QUEUELIST_NEXT = -4;
 
+        public EventHandler<Song> SongChanged { get; set; }
+
+        public bool IsPlaying { get; private set; }
+        public string CurrentStation { get; private set; }
+        public Song CurrentSong { get; private set; }
+
+
         public unsafe Player(Connect connect, object observer)
         {
             IntPtr intptr = new IntPtr(this.GetHashCode());
@@ -75,6 +82,9 @@ namespace DeezerPlayerLib.Engine
 
                     var song = JsonConvert.DeserializeObject<Song>(currentSong);
 
+                    CurrentSong = JsonConvert.DeserializeObject<Song>(currentSong);
+                    OnSongChanged(CurrentSong);
+
                     Console.WriteLine($"{DateTime.Now} - Artist: {song.Artist.Name} Song: {song.Title} Album: {song.Album.Title}");
                 }
 
@@ -89,13 +99,29 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_load(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero, url);
+
+            if (ret == ERRORS.DZ_ERROR_NO_ERROR)
+                CurrentStation = url;
+
             return ret;
         }
 
         public ERRORS Play()
         {
             ERRORS ret;
-            ret = dz_player_play(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero, PLAYER_COMMANDS.START_TRACKLIST, DZ_INDEX_IN_QUEUELIST_CURRENT);            
+            ret = dz_player_play(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero, PLAYER_COMMANDS.START_TRACKLIST, DZ_INDEX_IN_QUEUELIST_CURRENT);
+
+            if (ret == ERRORS.DZ_ERROR_NO_ERROR)
+                IsPlaying = true;
+
+            return ret;
+        }
+
+        public ERRORS Stop()
+        {
+            ERRORS ret;
+            ret = dz_player_stop(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero);
+            IsPlaying = false;
             return ret;
         }
 
@@ -117,6 +143,7 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_pause(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero);
+            IsPlaying = false;
             return ret;
         }
 
@@ -124,6 +151,7 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_resume(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero);
+            IsPlaying = true;
             return ret;
         }
 
@@ -135,19 +163,22 @@ namespace DeezerPlayerLib.Engine
         }
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
-        static extern unsafe PLAYER* dz_player_new(CONNECT* lpcc);        
+        static extern unsafe PLAYER* dz_player_new(CONNECT* lpcc);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_player_set_event_cb(PLAYER* lpcc, libcPlayerOnEventCb cb);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
-        static extern unsafe ERRORS dz_player_activate(PLAYER* dzPlayer, IntPtr userdata);        
+        static extern unsafe ERRORS dz_player_activate(PLAYER* dzPlayer, IntPtr userdata);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_player_load(PLAYER* dzPlayer, IntPtr cb, IntPtr userdata, string url);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_player_play(PLAYER* dzPlayer, IntPtr cb, IntPtr userdata, PLAYER_COMMANDS cmd, int mode);
+
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe ERRORS dz_player_stop(PLAYER* dzPlayer, IntPtr cb, IntPtr userdata);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe bool dz_player_event_get_queuelist_context(PLAYER_EVENT* eventHendle, STREAMING_MODE* streamingMode, int* out_idx);
@@ -174,7 +205,18 @@ namespace DeezerPlayerLib.Engine
         static extern unsafe ERRORS dz_player_set_repeat_mode(PLAYER* dzplayer, IntPtr cb, IntPtr userData, QUEUELIST_REPEAT_MODE mode);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe ERRORS dz_player_set_output_volume(PLAYER* dzplayer, IntPtr cb, IntPtr userData, uint volume);
+
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_player_deactivate(PLAYER* dzplayer, IntPtr cb, IntPtr userData);
+
+        private void OnSongChanged(Song song)
+        {
+            var handler = SongChanged;
+
+            if (handler != null)
+                handler.Invoke(this, song);
+        }
 
         public void Dispose()
         {
