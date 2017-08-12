@@ -11,33 +11,30 @@ using System.Runtime.InteropServices;
 namespace DeezerPlayerLib.Engine
 {
     unsafe public class Player : IDisposable
-    {        
+    {
         static Hashtable refKeeper = new Hashtable();
 
         internal unsafe PLAYER* libcPlayerHndl;
         internal Connect connect;
         internal libcPlayerOnEventCb eventcb;
 
+        public EventHandler<Song> SongChanged { get; set; }
+
         private const int DZ_INDEX_IN_QUEUELIST_INVALID = -1;
         private const int DZ_INDEX_IN_QUEUELIST_PREVIOUS = -2;
         private const int DZ_INDEX_IN_QUEUELIST_CURRENT = -3;
         private const int DZ_INDEX_IN_QUEUELIST_NEXT = -4;
 
-        public EventHandler<Song> SongChanged { get; set; }
-
         public bool IsPlaying { get; private set; }
         public string CurrentStation { get; private set; }
         public Song CurrentSong { get; private set; }
 
-
         public unsafe Player(Connect connect, object observer)
         {
             IntPtr intptr = new IntPtr(this.GetHashCode());
-
             refKeeper[intptr] = this;
 
             libcPlayerHndl = dz_player_new(connect.libcConnectHndl);
-
             this.connect = connect;
         }
 
@@ -45,24 +42,25 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_activate(libcPlayerHndl, new IntPtr(this.GetHashCode()));
+            Console.WriteLine($"dz_player_activate result: {ret}");
 
             this.eventcb = delegate (PLAYER* libcPlayer, PLAYER_EVENT* libcPlayerEvent, IntPtr userdata)
             {
                 Player player = (Player)refKeeper[userdata];
-                PlayerEvent playerEvent = PlayerEvent.newFromLibcEvent(libcPlayerEvent);                
+                PlayerEvent playerEvent = PlayerEvent.newFromLibcEvent(libcPlayerEvent);
 
                 STREAMING_MODE streamingMode;
                 int idx;
 
                 var result = dz_player_event_get_queuelist_context(libcPlayerEvent, &streamingMode, &idx);
 
-                if(!result)
+                if (!result)
                 {
                     streamingMode = STREAMING_MODE.DZ_STREAMING_MODE_ONDEMAND;
                     idx = DZ_INDEX_IN_QUEUELIST_INVALID;
                 }
 
-                if(playerEvent.eventType == PLAYER_EVENT_TYPE.DZ_PLAYER_EVENT_QUEUELIST_TRACK_SELECTED)
+                if (playerEvent.eventType == PLAYER_EVENT_TYPE.DZ_PLAYER_EVENT_QUEUELIST_TRACK_SELECTED)
                 {
                     bool isPreview;
                     bool canPauseUnPause;
@@ -75,23 +73,22 @@ namespace DeezerPlayerLib.Engine
                     var ok = dz_player_event_track_selected_rights(libcPlayerEvent, &canPauseUnPause, &canSeek, &numberSkipAllowed);
 
                     var songIntPtr = dz_player_event_track_selected_dzapiinfo(libcPlayerEvent);
-                    var nextIntPtr = dz_player_event_track_selected_next_track_dzapiinfo(libcPlayerEvent); 
+                    var nextIntPtr = dz_player_event_track_selected_next_track_dzapiinfo(libcPlayerEvent);
 
                     currentSong = Marshal.PtrToStringAnsi(songIntPtr);
                     nextSong = Marshal.PtrToStringAnsi(nextIntPtr);
 
-                    var song = JsonConvert.DeserializeObject<Song>(currentSong);
-
                     CurrentSong = JsonConvert.DeserializeObject<Song>(currentSong);
                     OnSongChanged(CurrentSong);
-
-                    Console.WriteLine($"{DateTime.Now} - Artist: {song.Artist.Name} Song: {song.Title} Album: {song.Album.Title}");
+                    IsPlaying = true;
                 }
 
                 eventcb.Invoke(player, playerEvent);
             };
 
             ret = dz_player_set_event_cb(libcPlayerHndl, this.eventcb);
+            Console.WriteLine($"dz_player_set_event_cb result: {ret}");
+
             return ret;
         }
 
@@ -121,7 +118,10 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_stop(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero);
-            IsPlaying = false;
+
+            if (ret == ERRORS.DZ_ERROR_NO_ERROR)
+                IsPlaying = false;
+
             return ret;
         }
 
@@ -143,7 +143,17 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_pause(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero);
-            IsPlaying = false;
+
+            if (ret == ERRORS.DZ_ERROR_NO_ERROR)
+                IsPlaying = false;
+
+            return ret;
+        }
+
+        public ERRORS Dislike()
+        {
+            ERRORS ret;
+            ret = dz_player_play(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero, PLAYER_COMMANDS.DISLIKE, DZ_INDEX_IN_QUEUELIST_NEXT);
             return ret;
         }
 
@@ -151,7 +161,10 @@ namespace DeezerPlayerLib.Engine
         {
             ERRORS ret;
             ret = dz_player_resume(libcPlayerHndl, IntPtr.Zero, IntPtr.Zero);
-            IsPlaying = true;
+
+            if (ret == ERRORS.DZ_ERROR_NO_ERROR)
+                IsPlaying = true;
+
             return ret;
         }
 
@@ -212,10 +225,7 @@ namespace DeezerPlayerLib.Engine
 
         private void OnSongChanged(Song song)
         {
-            var handler = SongChanged;
-
-            if (handler != null)
-                handler.Invoke(this, song);
+            SongChanged?.Invoke(this, song);
         }
 
         public void Dispose()

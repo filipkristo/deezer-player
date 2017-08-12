@@ -9,8 +9,7 @@ using System.Runtime.InteropServices;
 namespace DeezerPlayerLib.Engine
 {
     unsafe public class Connect : IDisposable
-    {
-        // hash
+    {        
         static Hashtable refKeeper = new Hashtable();
 
         internal unsafe CONNECT* libcConnectHndl;

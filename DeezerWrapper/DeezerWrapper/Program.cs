@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading;
 using DeezerPlayerLib.Engine;
 using DeezerPlayerLib.Enum;
+using System.IO;
 
 namespace DeezerWrapper
 {
@@ -21,7 +22,7 @@ namespace DeezerWrapper
                 ccAppId = "180202",
                 product_id = "DeezerWrapper",
                 product_build_id = "00001",
-                ccUserProfilePath = "c:\\dzr\\dzrcache_NDK_SAMPLE",                
+                ccUserProfilePath = GetDeezerTempFolder(),                
                 ccConnectEventCb = OnConnect
             };
 
@@ -82,6 +83,17 @@ namespace DeezerWrapper
 
             if (playerEvent.eventType == PLAYER_EVENT_TYPE.DZ_PLAYER_EVENT_RENDER_TRACK_UNDERFLOW)
                 player.Next();
+        }
+
+        private static string GetDeezerTempFolder()
+        {
+            var tempPath = Path.GetTempPath();
+            var tempFolder = Path.Combine(tempPath, "DeezerPlayer");
+
+            if (!Directory.Exists(tempFolder))
+                Directory.CreateDirectory(tempFolder);
+
+            return tempFolder;
         }
     }
 }
