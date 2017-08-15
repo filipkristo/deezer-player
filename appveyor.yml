@@ -1,0 +1,5 @@
+platform: Any CPU
+configuration: Release
+build:
+  parallel: true                                # enable MSBuild parallel builds
+  project: DeezerWrapper/DeezerWrapper.sln      # path to Visual Studio solution or project
