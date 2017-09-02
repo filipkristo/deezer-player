@@ -1,5 +1,7 @@
 ![Deezer](http://cdn-files.deezer.com/img/press/new_logo_white.jpg "Deezer") 
 
+[![Build status](https://ci.appveyor.com/api/projects/status/55rxjeaqwyrm618p?svg=true)](https://ci.appveyor.com/project/filipkristo/deezer-player)
+
 ## DeezerWrapper
 
 DeezerWrapper is a C# application which uses Deezer's Native SDK to play a song once a user was authenticated.

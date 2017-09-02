@@ -1,0 +1,14 @@
+platform: Any CPU
+configuration: Release
+
+os: Visual Studio 2017
+
+environment:
+  AllowUnsafeBlocks: true
+
+build:
+  parallel: true                                # enable MSBuild parallel builds
+  project: DeezerWrapper/DeezerWrapper.sln      # path to Visual Studio solution or project
+  
+before_build:
+  - nuget restore DeezerWrapper/DeezerWrapper.sln
