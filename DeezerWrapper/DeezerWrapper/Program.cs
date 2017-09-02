@@ -30,10 +30,17 @@ namespace DeezerWrapper
             connect.Start();            
             connect.SetAccessToken("fr49mph7tV4KY3ukISkFHQysRpdCEbzb958dB320pM15OpFsQs");            
             connect.ConnectOfflineMode();
-            
+
+            var version = connect.GetSdkVersion();
+            var deviceId = connect.GetDeviceId();
+
+            Console.WriteLine($"SDK Version: {version}");
+            Console.WriteLine($"Device Id: {deviceId}");
+
             Thread.Sleep(5000);
 
             var player = new Player(connect, null);
+            player.SongChanged += Player_SongChanged;
             player.Start(OnPlayerEvent);
             player.SetRepeatMode(QUEUELIST_REPEAT_MODE.DZ_QUEUELIST_REPEAT_MODE_ALL);
             player.LoadStream(stream);
@@ -70,6 +77,12 @@ namespace DeezerWrapper
 
             player.Dispose();
             connect.Dispose();
+        }
+
+        private static void Player_SongChanged(object sender, DeezerPlayer.Model.Song e)
+        {
+            Console.WriteLine($"SongChanged: {e.Artist.Name}");
+            
         }
 
         private static void OnConnect(Connect connect, ConnectEvent connectEvent)

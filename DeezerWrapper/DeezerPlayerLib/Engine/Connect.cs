@@ -15,6 +15,8 @@ namespace DeezerPlayerLib.Engine
         internal unsafe CONNECT* libcConnectHndl;
         internal ConnectConfig connectConfig;
 
+        private libcOnCacheEvent onCache;
+
         public unsafe Connect(ConnectConfig cc)
         {
             NativeMethods.LoadClass();
@@ -44,8 +46,7 @@ namespace DeezerPlayerLib.Engine
 
             libcConnectHndl = dz_connect_new(libcCc);
 
-            UTF8Marshaler.GetInstance(null).CleanUpNativeData(libcCc.ccUserProfilePath);
-            
+            UTF8Marshaler.GetInstance(null).CleanUpNativeData(libcCc.ccUserProfilePath);            
         }
 
         public ERRORS Start()
@@ -55,16 +56,26 @@ namespace DeezerPlayerLib.Engine
             return ret;
         }
 
-        public string DeviceId()
+        public string GetDeviceId()
         {
-            IntPtr libcDeviceId = dz_connect_get_device_id(libcConnectHndl);
+            string deviceId = null;
+            var libcDeviceId = dz_connect_get_device_id(libcConnectHndl);
 
-            if (libcDeviceId == null)
-            {
-                return null;
-            }
+            if (libcDeviceId != null)
+                deviceId = Marshal.PtrToStringAnsi(libcDeviceId);
 
-            return Marshal.PtrToStringAnsi(libcDeviceId);
+            return deviceId;
+        }
+
+        public string GetSdkVersion()
+        {
+            string version = null;
+            var libcDeviceId = dz_connect_get_build_id();
+
+            if (libcDeviceId != null)
+                version = Marshal.PtrToStringAnsi(libcDeviceId);
+
+            return version;
         }
 
         public ERRORS SetAccessToken(string accessToken)
@@ -74,7 +85,7 @@ namespace DeezerPlayerLib.Engine
             return ret;
         }
 
-        public ERRORS SetSmartCache(string path, int quotaKb)
+        public ERRORS SetSmartCache(string path, uint quotaKb)
         {
             ERRORS ret;
             ret = dz_connect_cache_path_set(libcConnectHndl, IntPtr.Zero, IntPtr.Zero, path);
@@ -87,6 +98,16 @@ namespace DeezerPlayerLib.Engine
             ERRORS ret;
             ret = dz_connect_offline_mode(libcConnectHndl, IntPtr.Zero, IntPtr.Zero, false);
             return ret;
+        }
+
+        public void SmartCacheEvent()
+        {
+            //onCache = new libcOnCacheEvent((libcConnect, libcConnectEvent, userdata) =>
+            //{
+            //    Console.WriteLine(userdata);
+            //});
+
+            //dz_connect_cache_eventcb_set(libcConnectHndl, IntPtr.Zero, IntPtr.Zero, onCache);
         }
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -114,9 +135,20 @@ namespace DeezerPlayerLib.Engine
               string local_path);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe ERRORS dz_connect_cache_eventcb_set(
+            CONNECT* dzConnect, IntPtr cb, IntPtr userdata, libcOnCacheEvent onCache);
+
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_connect_smartcache_quota_set(
             CONNECT* dzConnect, IntPtr cb, IntPtr userdata,
-              int quota_kB);
+              uint quota_kB);
+
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe ulong dz_connect_cache_current_size(
+            CONNECT* dzConnect);
+
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe ERRORS dz_connect_cache_flush(CONNECT* dzConnect, IntPtr cb, IntPtr userData);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_connect_offline_mode(CONNECT* dzConnect, IntPtr cb, IntPtr userData, bool offlineMode);
@@ -124,6 +156,9 @@ namespace DeezerPlayerLib.Engine
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_player_deactivate(
             CONNECT* dzConnect, IntPtr cb, IntPtr userdata);
+
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern unsafe IntPtr dz_connect_get_build_id();
 
         public void Dispose()
         {

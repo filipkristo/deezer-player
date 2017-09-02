@@ -50,11 +50,14 @@
     <Compile Include="Engine\ConnectEvent.cs" />
     <Compile Include="Engine\CONNECT_CONFIG.cs" />
     <Compile Include="Enum\CONNECT_EVENT_TYPE.cs" />
+    <Compile Include="Enum\DZ_TRACK_METADATA.cs" />
+    <Compile Include="Enum\DZ_TRACK_QUALITY.cs" />
     <Compile Include="Enum\ERRORS.cs" />
     <Compile Include="Engine\NativeMethods.cs" />
     <Compile Include="Engine\NewAccessTokenConnectEvent.cs" />
     <Compile Include="Engine\Player.cs" />
     <Compile Include="Engine\PlayerEvent.cs" />
+    <Compile Include="Enum\EXECUTION_STATE.cs" />
     <Compile Include="Enum\PLAYER_COMMANDS.cs" />
     <Compile Include="Enum\PLAYER_EVENT_TYPE.cs" />
     <Compile Include="Enum\QUEUELIST_REPEAT_MODE.cs" />
