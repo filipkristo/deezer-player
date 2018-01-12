@@ -4,7 +4,7 @@
 // http://www.codeproject.com/Articles/339290/PInvoke-pointer-safety-Replacing-IntPtr-with-unsaf
 
 namespace DeezerPlayerLib.Engine
-{    
+{
     // to be in sync with dz_connect_configuration
     [StructLayout(LayoutKind.Sequential)]
     public class ConnectConfig
@@ -13,9 +13,9 @@ namespace DeezerPlayerLib.Engine
 
         public string product_id;
         public string product_build_id;
-        public string anonymousblob;        
+        public string anonymousblob;
 
-        public string ccUserProfilePath;        
+        public string ccUserProfilePath;
         public ConnectOnEventCb ccConnectEventCb;
     }
 }

@@ -12,6 +12,6 @@ namespace DeezerPlayerLib.Enum
 
         DZ_INDEX_IN_QUEUELIST_CURRENT = -3,
 
-        DZ_INDEX_IN_QUEUELIST_NEXT = -4,        
+        DZ_INDEX_IN_QUEUELIST_NEXT = -4,
     };
 }

@@ -21,7 +21,7 @@ namespace DeezerPlayerLib.Engine
         internal libcPlayerOnEventCb eventcb;
         internal libcPlayerOnMetaDataCb onMetaDatacb;
         internal libcPlayerOnIndexProgressCb onIndexProgress;
-        internal libcPlayerOnRenderProgressCb onRenderProgress;        
+        internal libcPlayerOnRenderProgressCb onRenderProgress;
 
         public event EventHandler<Song> SongChanged;
         public event EventHandler<ulong> ProgressChanged;
@@ -90,7 +90,7 @@ namespace DeezerPlayerLib.Engine
                     bool isPreview;
                     bool canPauseUnPause;
                     bool canSeek;
-                    int numberSkipAllowed;                    
+                    int numberSkipAllowed;
 
                     isPreview = dz_player_event_track_selected_is_preview(libcPlayerEvent);
                     var ok = dz_player_event_track_selected_rights(libcPlayerEvent, &canPauseUnPause, &canSeek, &numberSkipAllowed);
@@ -106,7 +106,11 @@ namespace DeezerPlayerLib.Engine
                     OnSongChanged(CurrentSong);
                     IsPlaying = true;
                 }
-
+                if (playerEvent.eventType == PLAYER_EVENT_TYPE.DZ_PLAYER_EVENT_QUEUELIST_LOADED && CurrentStation.IndexOf("playlist", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    Next();
+                    Console.WriteLine("Next song - plalist");
+                }
                 eventcb.Invoke(player, playerEvent);
             };
 
@@ -195,7 +199,7 @@ namespace DeezerPlayerLib.Engine
             NativeMethods.SetThreadExecutionState(EXECUTION_STATE.ES_AWAYMODE_REQUIRED | EXECUTION_STATE.ES_CONTINUOUS);
             return ret;
         }
-        
+
         public ERRORS SetRepeatMode(QUEUELIST_REPEAT_MODE repeatMode)
         {
             ERRORS ret;
@@ -224,7 +228,7 @@ namespace DeezerPlayerLib.Engine
             return ret;
         }
 
-        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]        
+        [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe PLAYER* dz_player_new(CONNECT* lpcc);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -282,7 +286,7 @@ namespace DeezerPlayerLib.Engine
         static extern unsafe IntPtr dz_player_event_track_selected_dzapiinfo(PLAYER_EVENT* eventHandle);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)]
-        static extern unsafe IntPtr dz_player_event_track_selected_next_track_dzapiinfo(PLAYER_EVENT* eventHandle);        
+        static extern unsafe IntPtr dz_player_event_track_selected_next_track_dzapiinfo(PLAYER_EVENT* eventHandle);
 
         [DllImport("libdeezer.x86.dll", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe ERRORS dz_player_pause(PLAYER* dzplayer, IntPtr cb, IntPtr userData);

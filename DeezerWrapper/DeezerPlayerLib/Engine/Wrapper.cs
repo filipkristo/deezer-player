@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // http://www.codeproject.com/Articles/339290/PInvoke-pointer-safety-Replacing-IntPtr-with-unsaf
 
 namespace DeezerPlayerLib.Engine
-{      
+{
     public delegate void ConnectOnEventCb(Connect connect, ConnectEvent connectEvent);
     public delegate void PlayerOnEventCb(Player player, PlayerEvent playerEvent);
 

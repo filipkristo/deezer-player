@@ -12,23 +12,26 @@ using System.IO;
 namespace DeezerWrapper
 {
     class Program
-    {             
+    {
         static void Main(string[] args)
         {
-            var stream = args.Length > 0 ? args.First() : "dzradio:///radio-30781";
+            var playlist = "dzmedia:///playlist/1490558021";
+            var station = "dzradio:///radio-30781";
+
+            var stream = args.Length > 0 ? args[0] : playlist;
 
             var connectConfig = new ConnectConfig()
             {
                 ccAppId = "180202",
                 product_id = "DeezerWrapper",
                 product_build_id = "00001",
-                ccUserProfilePath = GetDeezerTempFolder(),                
+                ccUserProfilePath = GetDeezerTempFolder(),
                 ccConnectEventCb = OnConnect
             };
 
-            var connect = new Connect(connectConfig);            
-            connect.Start();            
-            connect.SetAccessToken("fr49mph7tV4KY3ukISkFHQysRpdCEbzb958dB320pM15OpFsQs");            
+            var connect = new Connect(connectConfig);
+            connect.Start();
+            connect.SetAccessToken("fr49mph7tV4KY3ukISkFHQysRpdCEbzb958dB320pM15OpFsQs");
             connect.ConnectOfflineMode();
 
             var version = connect.GetSdkVersion();
@@ -46,7 +49,7 @@ namespace DeezerWrapper
             player.LoadStream(stream);
             player.Play();
 
-            var line = string.Empty;
+            string line;
 
             while((line = Console.ReadLine()) != "Q")
             {
@@ -68,7 +71,7 @@ namespace DeezerWrapper
                         {
                             player.LoadStream(radio);
                             player.Play();
-                        }                        
+                        }
                         break;
                     default:
                         break;
@@ -82,12 +85,12 @@ namespace DeezerWrapper
         private static void Player_SongChanged(object sender, DeezerPlayer.Model.Song e)
         {
             Console.WriteLine($"SongChanged: {e.Artist.Name}");
-            
+
         }
 
         private static void OnConnect(Connect connect, ConnectEvent connectEvent)
         {
-            Console.WriteLine(connectEvent.eventType);            
+            Console.WriteLine(connectEvent.eventType);
         }
 
         private static void OnPlayerEvent(Player player, PlayerEvent playerEvent)

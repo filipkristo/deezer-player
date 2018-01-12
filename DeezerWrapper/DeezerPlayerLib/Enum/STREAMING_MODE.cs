@@ -3,7 +3,7 @@
 // http://www.codeproject.com/Articles/339290/PInvoke-pointer-safety-Replacing-IntPtr-with-unsaf
 
 namespace DeezerPlayerLib.Enum
-{    
+{
     public enum STREAMING_MODE
     {
         DZ_STREAMING_MODE_UNKNOWN,  /**< Mode is not known or audio ad is playing. */

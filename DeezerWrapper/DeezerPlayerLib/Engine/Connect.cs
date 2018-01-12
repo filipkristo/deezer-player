@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 namespace DeezerPlayerLib.Engine
 {
     unsafe public class Connect : IDisposable
-    {        
+    {
         static Hashtable refKeeper = new Hashtable();
 
         internal unsafe CONNECT* libcConnectHndl;
@@ -39,14 +39,14 @@ namespace DeezerPlayerLib.Engine
             libcCc.ccConnectEventCb = delegate (CONNECT* libcConnect, CONNECT_EVENT* libcConnectEvent, IntPtr userdata)
             {
                 Connect connect = (Connect)refKeeper[userdata];
-                ConnectEvent connectEvent = ConnectEvent.newFromLibcEvent(libcConnectEvent);                
+                ConnectEvent connectEvent = ConnectEvent.newFromLibcEvent(libcConnectEvent);
 
                 connect.connectConfig.ccConnectEventCb.Invoke(connect, connectEvent);
             };
 
             libcConnectHndl = dz_connect_new(libcCc);
 
-            UTF8Marshaler.GetInstance(null).CleanUpNativeData(libcCc.ccUserProfilePath);            
+            UTF8Marshaler.GetInstance(null).CleanUpNativeData(libcCc.ccUserProfilePath);
         }
 
         public ERRORS Start()
