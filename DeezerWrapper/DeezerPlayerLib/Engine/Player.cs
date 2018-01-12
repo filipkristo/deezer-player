@@ -106,7 +106,7 @@ namespace DeezerPlayerLib.Engine
                     OnSongChanged(CurrentSong);
                     IsPlaying = true;
                 }
-                if (playerEvent.eventType == PLAYER_EVENT_TYPE.DZ_PLAYER_EVENT_QUEUELIST_LOADED && CurrentStation.IndexOf("playlist", StringComparison.OrdinalIgnoreCase) >= 0)
+                else if (playerEvent.eventType == PLAYER_EVENT_TYPE.DZ_PLAYER_EVENT_QUEUELIST_LOADED && CurrentStation.IndexOf("playlist", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     Next();
                     Console.WriteLine("Next song - plalist");
